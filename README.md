@@ -17,6 +17,7 @@
 - [博主：Dr. Axel Rauschmayer（理由：不定期对规范进行更新、讲解）](http://www.2ality.com/2016/02/ecmascript-2017.html)
 - [FEX周刊](http://fex.baidu.com/articles/)
 - [奇舞周刊](https://weekly.75team.com/)
+- [阮一峰ES6入门](http://es6.ruanyifeng.com/)
 
 
 
