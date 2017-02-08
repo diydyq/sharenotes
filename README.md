@@ -1,2 +1,2 @@
-# sharenote
-Mainly includes: front end translation, notes, spec, best practice. 
+# 初心
+仓库主要记录了一些个人翻译、技术笔记、个人实现等的文档，方便个人查阅，与其它同学沟通，和团队一起把前端团队发展壮大。
