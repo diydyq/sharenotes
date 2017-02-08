@@ -10,3 +10,13 @@
 
 - [Exploring ES6](http://exploringjs.com/es6/index.html)
 - [Exploring ES2016 and ES2017](http://exploringjs.com/es2016-es2017/)
+
+
+## 网址推荐
+
+- [博主：Dr. Axel Rauschmayer（理由：不定期对规范进行更新、讲解）](http://www.2ality.com/2016/02/ecmascript-2017.html)
+- [FEX周刊](http://fex.baidu.com/articles/)
+- [奇舞周刊](https://weekly.75team.com/)
+
+
+
