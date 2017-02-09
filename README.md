@@ -5,6 +5,7 @@
 ## 翻译
 
 - [[翻译]探索ES2016和ES2017 - 背景介绍](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%BF%BB%E8%AF%91%5D%E6%8E%A2%E7%B4%A2ES2016%E5%92%8CES2017%20-%20%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D.md)
+- [[翻译]探索ES6 - 第16章 模块](http://exploringjs.com/es6/index.html)
 
 ## 书籍推荐
 

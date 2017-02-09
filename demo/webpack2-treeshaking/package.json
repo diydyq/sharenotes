@@ -1,0 +1,24 @@
+{
+  "name": "test-webpack2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run server",
+    "server": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --config config/webpack.config.js --host 0.0.0.0 --port 8527 --history-api-fallback --inline --progress",
+    "server2": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --config config/webpack.config.js --host 0.0.0.0 --port 8527 --history-api-fallback --inline --progress --optimize-minimize",
+    "qa": "rimraf dist/pack && ./node_modules/webpack --config config/webpack.config.js --bail --progress --profile",
+    "ol": "rimraf dist/pack && ./node_modules/webpack --config config/webpack.config.js --bail --progress --profile",
+    "debug": "rimraf dist/pack && node-debug --no-preload ./node_modules/webpack/bin/webpack.js --config config/webpack.config.js --bail --progress --profile > output.json"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10"
+  }
+}
