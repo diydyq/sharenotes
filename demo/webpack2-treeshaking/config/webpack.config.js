@@ -2,8 +2,8 @@ const path = require('path');
 
 module.exports = {
 
-     entry: './src/test.js',
-    //entry: './src/example.js',
+     entry: './src/demo-mine.js',
+    //entry: './src/demo-webpack.js',
 
     output: {
         path: path.resolve(__dirname, '..', 'dist'),

@@ -2,6 +2,11 @@
 仓库主要记录了一些个人翻译、技术笔记、个人实现等的文档，方便个人查阅，与其它同学沟通，和团队一起把前端团队发展壮大。
 
 
+## 笔记
+
+- [[笔记]关于tree-shaking与webpack2升级变化.md]()
+
+
 ## 翻译
 
 - [[翻译]探索ES2016和ES2017 - 背景介绍](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%BF%BB%E8%AF%91%5D%E6%8E%A2%E7%B4%A2ES2016%E5%92%8CES2017%20-%20%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D.md)
