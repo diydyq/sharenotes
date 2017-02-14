@@ -12,7 +12,7 @@ Tree-shaking算不上一个技术术语，但是却很形象，当我们晃动�
 
 ## 示例代码
 
-在本代码库的[webpack2-treeshaking示例](https://github.com/diydyq/sharenotes/tree/master/demo/webpack2-treeshaking)中，展示了对声明export ...方式的使用说明，那么采用export default的方式当前是不支持的；
+在本代码库的[webpack2-treeshaking示例](https://github.com/diydyq/sharenotes/tree/master/demo/webpack2-treeshaking)中，展示了对声明export ...方式和export default的方式的使用说明；
 
 在src/demo-mine的JSDoc描述中，说明了如何用webpack2跑起来；
 
@@ -25,11 +25,12 @@ Tree-shaking算不上一个技术术语，但是却很形象，当我们晃动�
 4. 由于减少了依赖，模块代码会变少，方便多个模块之间进行合并；这是在探索ES6一书中所讲述的优势，详见：[章节16.8.2.2](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%BF%BB%E8%AF%91%5D%E6%8E%A2%E7%B4%A2ES6%20-%20%E7%AC%AC16%E7%AB%A0%20%E6%A8%A1%E5%9D%97.md)
 
 
-## Tree-shaking的展望
+## Tree-shaking的其它说明
 
-1. 当前尚未看到对ES6模块声明中export default的支持；
-2. 由于原理本身是借助了ES6模块的静态结构的特点，所以这要求被依赖的模块/类库采用这种语法来导出，而不是现在常用的CommonJS规范；我想这也是许多同学觉得Tree-shaking夸大的原因之一吧。
-3. ES6模块的静态结构之后的新规范：动态结构的介绍，挺有意义的，详见[这里](http://www.2ality.com/2017/01/import-operator.html)
+1. Tree-shaking当前是依赖于Uglify.js此类的代码压缩工具的；其实是两步骤：1. webpack发现unused export；2. uglify.js剔除未使用代码；
+2. 当前尚未看到对ES6模块声明中对export default为字典对象（即：{}）的支持；
+3. 由于原理本身是借助了ES6模块的静态结构的特点，所以这要求被依赖的模块/类库采用这种语法来导出，而不是现在常用的CommonJS规范；我想这也是许多同学觉得Tree-shaking夸大的原因之一吧。
+4. ES6模块的静态结构之后的新规范：动态结构的介绍，挺有意义的，详见[这里](http://www.2ality.com/2017/01/import-operator.html)
 
 
 ## 排疑

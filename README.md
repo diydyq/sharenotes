@@ -4,7 +4,7 @@
 
 ## 笔记
 
-- [[笔记]关于tree-shaking与webpack2升级变化.md]()
+- [[笔记]关于tree-shaking与webpack2升级变化.md](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5D%E5%85%B3%E4%BA%8Etree-shaking%E4%B8%8Ewebpack2%E5%8D%87%E7%BA%A7%E5%8F%98%E5%8C%96.md)
 
 
 ## 翻译
