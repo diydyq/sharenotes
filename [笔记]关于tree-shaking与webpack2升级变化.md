@@ -48,6 +48,13 @@ Tree-shaking算不上一个技术术语，但是却很形象，当我们晃动�
 - Tree-shaking无效原因之一：没有禁用babel的modules转换模块，导致babel将modules转换为CommonJS规范；在.babelrc中声明 modules: false，详见[官网](http://babeljs.io/docs/plugins/#modules)
 
 
+## webpack2升级变化
+
+团队现在的脚手架是：webpack1+vue2；不同于vue2，当时16年10月份发布之后，就迅速在团队中升级并普及开来；现在的webpack2除了Tree-shaking基本没有什么亮点，更多的是配置参数发生了变化；
+
+而关于Tree-shaking特性，如果团队中用处不大，还是可以通过webpack1中的Loader插件来解决的；**所以，当前不建议升级到webpack2**。
+
+
 ## 参考资料
 
 - [Rollup官网](https://github.com/rollup/rollup)
@@ -57,5 +64,6 @@ Tree-shaking算不上一个技术术语，但是却很形象，当我们晃动�
 - [另一个作者讲述Tree-shaking的由来](https://blog.engineyard.com/2016/tree-shaking)
 - [国内一位同学对Tree-shaking的实验](http://imweb.io/topic/58666d57b3ce6d8e3f9f99b0)
 - [ES6模块的静态结构之后的新规范：动态结构的介绍](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%BF%BB%E8%AF%91%5D%E6%8E%A2%E7%B4%A2ES6%20-%20%E7%AC%AC16%E7%AB%A0%20%E6%A8%A1%E5%9D%97.md)
+- [webpack2升级概要](https://webpack.js.org/guides/migrating/)
 
 
