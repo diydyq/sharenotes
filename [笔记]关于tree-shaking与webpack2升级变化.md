@@ -32,7 +32,7 @@ Tree-shaking算不上一个技术术语，但是却很形象，当我们晃动�
 1. Tree-shaking需要依赖于Uglify.js此类的代码压缩工具；其实是两步骤：1. webpack2发现unused export；2. uglify.js压缩式删除unused export代码；
 2. 当前尚未看到对ES6模块声明中对export default为字典对象（即：{}）的支持；
 3. 由于原理本身是借助了ES6模块的静态结构的特点，所以这要求被依赖的模块/类库采用这种语法来export模块，而不是现在常用的CommonJS规范；我想这也是许多同学觉得Tree-shaking夸大的原因之一吧。
-4. ES6模块在推出静态结构之后，建立新规范：动态结构的介绍，挺有意义的，详见[这里](http://www.2ality.com/2017/01/import-operator.html)
+4. ES6模块在推出静态结构之后，建立新提议：动态结构的介绍，挺有意义的，详见[这里](http://www.2ality.com/2017/01/import-operator.html)
 
 
 ## 与DCE（Dead Code Elimination）的关系
@@ -63,7 +63,7 @@ Tree-shaking算不上一个技术术语，但是却很形象，当我们晃动�
 - [作者Rich Harris对Tree-shaking与DCE的解释](https://medium.com/@Rich_Harris/tree-shaking-versus-dead-code-elimination-d3765df85c80#.45bhexvkq)
 - [另一个作者讲述Tree-shaking的由来](https://blog.engineyard.com/2016/tree-shaking)
 - [国内一位同学对Tree-shaking的实验](http://imweb.io/topic/58666d57b3ce6d8e3f9f99b0)
-- [ES6模块的静态结构之后的新规范：动态结构的介绍](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%BF%BB%E8%AF%91%5D%E6%8E%A2%E7%B4%A2ES6%20-%20%E7%AC%AC16%E7%AB%A0%20%E6%A8%A1%E5%9D%97.md)
+- [ES6模块的静态结构之后的新提议：动态结构的介绍](http://www.2ality.com/2017/01/import-operator.html)
 - [webpack2升级概要](https://webpack.js.org/guides/migrating/)
 
 
