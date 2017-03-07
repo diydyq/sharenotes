@@ -83,3 +83,7 @@ CSP的设置可以以两种方式：1) 通过HTTP Response Header设置; 2) 通�
 - [XSS预防](http://netsecurity.51cto.com/art/201406/443349.htm)
 - [W3 CSP规范](https://www.w3.org/TR/CSP3/#framework-directives)
 - [CSP策略及绕过方法](http://www.jianshu.com/p/4e8aff7f7de4)
+- [CSP from JerryQu](https://imququ.com/post/content-security-policy-reference.html)
+- [BNS, EBNF, ABNF介绍](http://matt.might.net/articles/grammars-bnf-ebnf/)
+
+
