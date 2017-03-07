@@ -17,6 +17,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 1. vueInstance.initData()对data属性中的每条数据做代理
 
+	````
 	function proxy (vm, key) {
 	  if (!isReserved(key)) {
 	    Object.defineProperty(vm, key, {
@@ -34,6 +35,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 2. vueInstance.initComputed()对computed属性中的每条数据做代理，这里方便直接定义Getter，所以Setter为noop空函数；
 
+	````
 	// ...
 	function initComputed (vm, computed) {
 	  for (var key in computed) {
@@ -91,6 +93,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 4. 公用Util，如：代理数组原型方法（'push','pop','shift','unshift','splice','sort','reverse'），在数组实例修改时触发脏数据检查
 
+	````
 	// ...
 	function def (obj, key, val, enumerable) {
 	  Object.defineProperty(obj, key, {
