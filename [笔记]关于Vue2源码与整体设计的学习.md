@@ -14,7 +14,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 ## 模块1：Setter/Getter代理
 
-众所周知，Vue1&2里都利用了JS的Getter/Setter完成UI层中数据的读写，那不可避免的就必然会用到一个API：**Object.defineProperty(obj, key, { ... })**，源码中的使用有以下几处：
+众所周知，Vue1&2里都利用了JS的Getter/Setter完成UI层中数据的读写，那不可避免的就必然会用到一个API：`Object.defineProperty(obj, key, { ... })`，源码中的使用有以下几处：
 
 ```javascript
 // 1. vueInstance.initData()对data属性中的每条数据key做代理，将每条key定义在组件实例上
@@ -236,6 +236,116 @@ Watcher.prototype.update = function update () {
   }
 };
 ```
+
+根据代码可以看到属性`key`与实例`dep`是一一对应的，知道了依赖方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与调用场景才能得知：
+
+
+```javascript
+// 传递vue组件，deps,depIds记录组件中的key调用
+var Watcher = function Watcher (
+  vm,
+  expOrFn,
+  cb,
+  options
+) {
+  this.vm = vm;
+  vm._watchers.push(this);
+  // options
+  if (options) {
+    this.deep = !!options.deep;
+    this.user = !!options.user;
+    this.lazy = !!options.lazy;
+    this.sync = !!options.sync;
+  } else {
+    this.deep = this.user = this.lazy = this.sync = false;
+  }
+  this.cb = cb;
+  this.id = ++uid$2; // uid for batching
+  this.active = true;
+  this.dirty = this.lazy; // for lazy watchers
+  this.deps = [];
+  this.newDeps = [];
+  this.depIds = new _Set();
+  this.newDepIds = new _Set();
+  this.expression = expOrFn.toString();
+  // parse expression for getter
+  if (typeof expOrFn === 'function') {
+    this.getter = expOrFn;
+  } else {
+    this.getter = parsePath(expOrFn);
+    if (!this.getter) {
+      this.getter = function () {};
+      "development" !== 'production' && warn(
+        "Failed watching path: \"" + expOrFn + "\" " +
+        'Watcher only accepts simple dot-delimited paths. ' +
+        'For full control, use a function instead.',
+        vm
+      );
+    }
+  }
+  this.value = this.lazy
+    ? undefined
+    : this.get();
+};
+
+// 调用1：在组件挂载mount的生命周期中实例化
+Vue.prototype._mount = function (
+  el,
+  hydrating
+) {
+  var vm = this;
+  vm.$el = el;
+  if (!vm.$options.render) {
+    vm.$options.render = createEmptyVNode;
+  }
+  callHook(vm, 'beforeMount');
+  vm._watcher = new Watcher(vm, function () {
+    vm._update(vm._render(), hydrating);
+  }, noop);
+  hydrating = false;
+  // manually mounted instance, call mounted on self
+  // mounted is called for render-created child components in its inserted hook
+  if (vm.$vnode == null) {
+    vm._isMounted = true;
+    callHook(vm, 'mounted');
+  }
+  return vm
+};
+// 调用2：代理computed属性的getter自定义方法，dirty后重新执行
+function makeComputedGetter (getter, owner) {
+  var watcher = new Watcher(owner, getter, noop, {
+    lazy: true
+  });
+  return function computedGetter () {
+    if (watcher.dirty) {
+      watcher.evaluate();
+    }
+    if (Dep.target) {
+      watcher.depend();
+    }
+    return watcher.value
+  }
+}
+// 调用3：在watch属性中的使用
+Vue.prototype.$watch = function (
+  expOrFn,
+  cb,
+  options
+) {
+  var vm = this;
+  options = options || {};
+  options.user = true;
+  var watcher = new Watcher(vm, expOrFn, cb, options);
+  if (options.immediate) {
+    cb.call(vm, watcher.value);
+  }
+  return function unwatchFn () {
+    watcher.teardown();
+  }
+};
+
+```
+
 
 
 
