@@ -8,7 +8,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 1. `Setter/Getter代理`：UI界面层对数据的读写
 2. `Dep类、Watcher类`：Vue组件与Expression表达式（如：{{ ... }}}）或者属性的依赖管理
 3. `模板编译前置AOT（Ahead Of Time）`：将组件模板编译为DOM树节点，每个节点以函数的形式体现
-4. `VNode的渲染`：VNode与Document Element的转换
+4. `VNode到HTML的渲染`：VNode与Document Element的转换
 5. `Virtual-DOM中新旧VNode的对比`：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
 
 
@@ -367,6 +367,199 @@ Vue.prototype.$watch = function (
 
 
 ## 模块3：模板编译前置AOT（Ahead Of Time）
+
+在JS打包合并时，将组件的模板HTML字符串转换为DOM片段，可以带来两点性能优势：
+
+1. 避免浏览器运行时编译模板的性能损耗；
+2. 避免Vue脚本中携带编译模板的JS引擎代码，减小体积；
+3. 避免HTML字符串出现在脚本中，取而代之的是编译后的函数化模板；（所以这点算不上性能优势）
+
+Vue2在DOM片段转换后，进而转换为可以执行的函数，[查看官网介绍](https://cn.vuejs.org/v2/guide/render-function.html#模板编译)，好处如下：
+
+1. 避免JSON化的DOM片段携带meta信息，如：某节点是空节点、文本节点、还是元素节点等；
+2. 函数区分为：render、staticRenderFns；后者标识子节点为纯HTML，在组件渲染时直接取之前的缓存即可，优化性能；
+
+函数执行后得到的是一个VNode树节点，它与Vue组件形成一一对应的关系（因为`_c|createElement`定义在vm上，搜索`vm._c`得知），就像Vue组件与Vue模板。
+
+
+## 模块4：Virtual-DOM中新旧VNode的对比
+
+如前所述，组件首次渲染或者data属性修改时，都会触发Watcher实例的更新：`subs[i].update();`，Watcher接下来将被放入待执行队列中，待多个WatcherList优先级排序后，开始执行，如下面的代码：
+
+```javascript
+Watcher.prototype.update = function update () {
+  if (this.lazy) {
+    this.dirty = true;
+  } else if (this.sync) {
+    this.run();
+  } else {
+  	// 放入队列
+    queueWatcher(this);
+  }
+};
+
+function queueWatcher (watcher) {
+  var id = watcher.id;
+  if (has$1[id] == null) {
+    has$1[id] = true;
+    if (!flushing) {
+      queue.push(watcher);
+    } else {
+      // if already flushing, splice the watcher based on its id
+      // if already past its id, it will be run next immediately.
+      var i = queue.length - 1;
+      while (i >= 0 && queue[i].id > watcher.id) {
+        i--;
+      }
+      queue.splice(Math.max(i, index) + 1, 0, watcher);
+    }
+    // queue the flush
+    if (!waiting) {
+      waiting = true;
+      nextTick(flushSchedulerQueue);
+    }
+  }
+}
+
+// 1. 排序（父子组件的先后顺序）; 2. 执行watcher.run()；3. Watcher的执行就是实例化是的参数expOrFn
+function flushSchedulerQueue () {
+  flushing = true;
+
+  // Sort queue before flush.
+  // This ensures that:
+  // 1. Components are updated from parent to child. (because parent is always
+  //    created before the child)
+  // 2. A component's user watchers are run before its render watcher (because
+  //    user watchers are created before the render watcher)
+  // 3. If a component is destroyed during a parent component's watcher run,
+  //    its watchers can be skipped.
+  queue.sort(function (a, b) { return a.id - b.id; });
+
+  // do not cache length because more watchers might be pushed
+  // as we run existing watchers
+  for (index = 0; index < queue.length; index++) {
+    var watcher = queue[index];
+    var id = watcher.id;
+    has$1[id] = null;
+    watcher.run();
+    ...
+  }
+
+  resetSchedulerState();
+}
+
+```
+
+还记得否？`Vue.prototype._mount()`中的`expOrFn`主要有两个步骤：
+
+1. vm._render()：执行组件的render()，返回VNode树节点；参见`Vue.prototype._render`
+2. vm._update(vNode)：将最新生成的VNode与当前组件的vNode进行对比并更新，参见`Vue.prototype._render`
+
+```javascript
+// 组件render()的调用
+Vue.prototype._render = function () {
+  var vm = this;
+  var ref = vm.$options;
+  var render = ref.render;
+  var staticRenderFns = ref.staticRenderFns;
+  var _parentVnode = ref._parentVnode;
+
+  if (vm._isMounted) {
+    // clone slot nodes on re-renders
+    for (var key in vm.$slots) {
+    vm.$slots[key] = cloneVNodes(vm.$slots[key]);
+    }
+  }
+
+  if (_parentVnode && _parentVnode.data.scopedSlots) {
+    vm.$scopedSlots = _parentVnode.data.scopedSlots;
+  }
+
+  if (staticRenderFns && !vm._staticTrees) {
+    vm._staticTrees = [];
+  }
+  // set parent vnode. this allows render functions to have access
+  // to the data on the placeholder node.
+  vm.$vnode = _parentVnode;
+  // render self
+  var vnode;
+  try {
+    vnode = render.call(vm._renderProxy, vm.$createElement);
+  } catch (e) {
+    /* istanbul ignore else */
+    if (config.errorHandler) {
+    config.errorHandler.call(null, e, vm);
+    } else {
+    if (process.env.NODE_ENV !== 'production') {
+      warn(("Error when rendering " + (formatComponentName(vm)) + ":"));
+    }
+    throw e
+    }
+    // return previous vnode to prevent render error causing blank component
+    vnode = vm._vnode;
+  }
+  // return empty vnode in case the render function errored out
+  if (!(vnode instanceof VNode)) {
+    if (process.env.NODE_ENV !== 'production' && Array.isArray(vnode)) {
+    warn(
+      'Multiple root nodes returned from render function. Render function ' +
+      'should return a single root node.',
+      vm
+    );
+    }
+    vnode = createEmptyVNode();
+  }
+  // set parent
+  vnode.parent = _parentVnode;
+  return vnode
+};
+
+
+// 新增与更新均使用__patch__()方法
+Vue.prototype._update = function (vnode, hydrating) {
+  var vm = this;
+  if (vm._isMounted) {
+    callHook(vm, 'beforeUpdate');
+  }
+  var prevEl = vm.$el;
+  var prevVnode = vm._vnode;
+  var prevActiveInstance = activeInstance;
+  activeInstance = vm;
+  vm._vnode = vnode;
+  // Vue.prototype.__patch__ is injected in entry points
+  // based on the rendering backend used.
+  if (!prevVnode) {
+    // initial render
+    vm.$el = vm.__patch__(
+    vm.$el, vnode, hydrating, false /* removeOnly */,
+    vm.$options._parentElm,
+    vm.$options._refElm
+    );
+  } else {
+    // updates
+    vm.$el = vm.__patch__(prevVnode, vnode);
+  }
+  activeInstance = prevActiveInstance;
+  // update __vue__ reference
+  if (prevEl) {
+    prevEl.__vue__ = null;
+  }
+  if (vm.$el) {
+    vm.$el.__vue__ = vm;
+  }
+  // if parent is an HOC, update its $el as well
+  if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
+    vm.$parent.$el = vm.$el;
+  }
+  if (vm._isMounted) {
+    callHook(vm, 'updated');
+  }
+};
+```
+
+
+
+## 模块5：VNode到HTML的渲染
 
 
 
