@@ -187,9 +187,9 @@ Object.defineProperty(Vue, 'config', configDef);
 2. 依赖的组件/表达式接下来怎么更新？
 3. 依赖管理是什么样子？好理解吗？
 
-从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，那么使用`dep`在getter时收集依赖方，setter时通知依赖方是不是一种很好的方式呢？
+从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，看来属性`key`与实例`dep`是一一对应的关系，那么使用`dep`在`getter`时收集依赖方，`setter`时通知依赖方是不是一种很好的方式呢？
 
-确实！Vue2就是这么做的，`dep.depend();`负责收集依赖，`dep.notify();`负责通知依赖；
+确实！Vue2就是这么做的，`dep.depend();`负责收集依赖，`dep.notify();`负责通知依赖，如下面的源码片段：
 
 ```javascript
 // 收集依赖
@@ -237,7 +237,7 @@ Watcher.prototype.update = function update () {
 };
 ```
 
-根据代码可以看到属性`key`与实例`dep`是一一对应的，知道了依赖方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与调用场景才能得知：
+根据代码`dep.addSub(this);`看来依赖方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与调用场景才能得知：
 
 
 ```javascript
@@ -346,6 +346,11 @@ Vue.prototype.$watch = function (
 
 ```
 
+可以看出，`Watcher`就是一个监听器，属性`deps, depIds`记录了每一个要监听的对象，当它们发生变化时，触发监听器的更新。那么更新的内容都包括哪些呢？很明显就是调用`new Watcher()`的地方了，即向构造函数传递`expOrFn`的参数；代码中显示了3处：
+
+1. 当Vue组件渲染更新时，包括首次挂载时，随后模板`render`更新
+2. 当computed中某个属性key的`getter`函数声明中的某个变量更新时，触发该`getter`函数的重新执行
+3. 同理`watch`属性；
 
 
 
