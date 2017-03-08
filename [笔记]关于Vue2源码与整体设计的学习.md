@@ -5,11 +5,11 @@
 
 Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上整体分为5个模块：
 
-1. Setter/Getter代理：UI界面层对数据的读写
-2. Dep类、Watcher类、Observe类：完成Component组件与Expression表达式（如：{{ ... }}}）的依赖管理
-3. 模板编译前置AOT（Ahead Of Time）：将组件模板编译为DOM树节点，每个节点以函数的形式体现
-4. VNode的渲染：VNode与Document Element的转换
-5. Virtual-DOM中新旧VNode的对比：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
+1. `Setter/Getter代理`：UI界面层对数据的读写
+2. `Dep类、Watcher类`：Vue组件与Expression表达式（如：{{ ... }}}）或者属性的依赖管理
+3. `模板编译前置AOT（Ahead Of Time）`：将组件模板编译为DOM树节点，每个节点以函数的形式体现
+4. `VNode的渲染`：VNode与Document Element的转换
+5. `Virtual-DOM中新旧VNode的对比`：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
 
 
 ## 模块1：Setter/Getter代理
@@ -179,7 +179,7 @@ Object.defineProperty(Vue, 'config', configDef);
 ```
 
 
-## 模块2：Dep类、Watcher类、Observe类
+## 模块2：Dep类、Watcher类
 
 如上所述，UI层修改时肯定会调用setter方法，但是修改之后是如何做到更新使用方的呢？它的使用方是组件还是使用该属性的多个表达式呢？这里的问题主要有3点：
 
@@ -364,6 +364,9 @@ Vue.prototype.$watch = function (
 1. Observe类的作用？为什么只在对象上才有，字面量值没有呢？
 2. 父组件给子组件通过prop属性传递的对象，是直接使用了父的对象还是子对象？
 3. Vue2推荐避免直接修改父组件传递的对象，是出于设计模式的角度出发，
+
+
+## 模块3：模板编译前置AOT（Ahead Of Time）
 
 
 
