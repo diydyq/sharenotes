@@ -6,17 +6,19 @@
 Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上整体分为这么几块：
 
 1. Setter/Getter代理：UI界面层对数据的读写
-2. 模板编译前置AOT（Ahead Of Time）：将组件模板编译为DOM树节点，每个节点以函数的形式体现
-3. VNode的渲染：VNode与Document Element的转换
-4. Virtual-DOM中新旧VNode的对比：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
+2. Observe类、Dep类、Watcher类：完成Component组件与Expression表达式（如：{{ ... }}}）的依赖管理
+3. 模板编译前置AOT（Ahead Of Time）：将组件模板编译为DOM树节点，每个节点以函数的形式体现
+4. VNode的渲染：VNode与Document Element的转换
+5. Virtual-DOM中新旧VNode的对比：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
 
 
-## Setter/Getter
+## Setter/Getter代理
 
 众所周知，Vue1&2里都利用了JS的Getter/Setter完成UI层中数据的读写，那不可避免的就必然会用到一个API：**Object.defineProperty(obj, key, { ... })**，源码中的使用有以下几处：
 
 ```javascript
 // 1. vueInstance.initData()对data属性中的每条数据key做代理，将每条key定义在组件实例上
+// 注意：这个调用仅涉及data的直接属性，深层次的setter/getter是另一个方法
 function proxy (vm, key) {
   if (!isReserved(key)) {
     Object.defineProperty(vm, key, {
@@ -97,7 +99,7 @@ function initComputed (vm, computed) {
 ```
 
 ```javascript
-// 3. 对深层次下数据对象的属性代理
+// 3. 对属性值为obj字典对象的属性代理
 function defineReactive$$1 (
   obj,
   key,
@@ -117,13 +119,47 @@ function defineReactive$$1 (
 
   var childOb = observe(val);
   Object.defineProperty(obj, key, {
-  	...
-  }
+    enumerable: true,
+    configurable: true,
+    get: function reactiveGetter () {
+      var value = getter ? getter.call(obj) : val;
+      if (Dep.target) {
+        dep.depend();
+        if (childOb) {
+          childOb.dep.depend();
+        }
+        if (Array.isArray(value)) {
+          dependArray(value);
+        }
+      }
+      return value
+    },
+    set: function reactiveSetter (newVal) {
+      var value = getter ? getter.call(obj) : val;
+      /* eslint-disable no-self-compare */
+      if (newVal === value || (newVal !== newVal && value !== value)) {
+        return
+      }
+      /* eslint-enable no-self-compare */
+      if ("development" !== 'production' && customSetter) {
+        customSetter();
+      }
+      if (setter) {
+        setter.call(obj, newVal);
+      } else {
+        val = newVal;
+      }
+      childOb = observe(newVal);
+      dep.notify();
+    }
+  });
 }
 ```
 
 ```javascript
-// 4. 公用Util，如：代理数组原型方法（'push','pop','shift','unshift','splice','sort','reverse'），在数组实例修改时触发脏数据检查
+// 4. 公用Util
+// 4.1 如：代理数组原型方法（'push','pop','shift','unshift','splice','sort','reverse'），在数组实例修改时触发脏数据检查
+// 4.2 如：为data中的对象定义**__ob__**观察对象
 function def (obj, key, val, enumerable) {
   Object.defineProperty(obj, key, {
     value: val,
@@ -135,10 +171,20 @@ function def (obj, key, val, enumerable) {
 ```
 
 ```javascript
-// 5. 避免直接对vueInstance.$data和Vue.config的直接写：
+// 5. 避免直接对vueInstance.$data和Vue.config的直接直接：
+// vueInstance.$data
 Object.defineProperty(Vue.prototype, '$data', dataDef);
+// Vue.config
 Object.defineProperty(Vue, 'config', configDef);
 ```
+
+
+## Observe类、Dep类、Watcher类
+
+
+
+
+
 
 
 
