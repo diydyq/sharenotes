@@ -187,7 +187,7 @@ Object.defineProperty(Vue, 'config', configDef);
 2. 依赖的组件/表达式接下来怎么更新？
 3. 依赖管理是什么样子？好理解吗？
 
-从上面<<3. 对属性值为obj字典对象的属性代理>>的代码中，我们可以看到：对象obj中的每个属性key原本的值val都会重新以**defineProperty()**的方式重新定义；同时针对每个属性key，都会以闭包的形式定义对应的Dep实例dep，那么使用dep在getter时收集依赖方，setter时通知依赖方是不是一种很好的方式呢？
+从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象obj中的每个属性key原本的值val都会重新以**defineProperty()**的方式重新定义；同时针对每个属性key，都会以闭包的形式定义对应的Dep实例dep，那么使用dep在getter时收集依赖方，setter时通知依赖方是不是一种很好的方式呢？
 
 确实！Vue2就是这么做的，**dep.depend();**负责收集依赖，**dep.notify();**负责通知依赖；
 
