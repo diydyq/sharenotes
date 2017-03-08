@@ -187,10 +187,55 @@ Object.defineProperty(Vue, 'config', configDef);
 2. 依赖的组件/表达式接下来怎么更新？
 3. 依赖管理是什么样子？好理解吗？
 
+从上面<<3. 对属性值为obj字典对象的属性代理>>的代码中，我们可以看到：对象obj中的每个属性key原本的值val都会重新以**defineProperty()**的方式重新定义；同时针对每个属性key，都会以闭包的形式定义对应的Dep实例dep，那么使用dep在getter时收集依赖方，setter时通知依赖方是不是一种很好的方式呢？
 
+确实！Vue2就是这么做的，**dep.depend();**负责收集依赖，**dep.notify();**负责通知依赖；
 
+```
+// 收集依赖
+var Dep = function Dep () {
+  this.id = uid$1++;
+  this.subs = [];
+};
 
+Dep.prototype.depend = function depend () {
+  if (Dep.target) {
+    Dep.target.addDep(this);
+  }
+};
 
+Watcher.prototype.addDep = function addDep (dep) {
+  var id = dep.id;
+  if (!this.newDepIds.has(id)) {
+    this.newDepIds.add(id);
+    this.newDeps.push(dep);
+    if (!this.depIds.has(id)) {
+      // 将依赖方Watcher加入dep.subs数组中
+      dep.addSub(this);
+    }
+  }
+};
+```
+
+```
+// 通知依赖
+Dep.prototype.notify = function notify () {
+  var subs = this.subs.slice();
+  for (var i = 0, l = subs.length; i < l; i++) {
+    subs[i].update();
+  }
+};
+
+Watcher.prototype.update = function update () {
+  if (this.lazy) {
+    this.dirty = true;
+  } else if (this.sync) {
+    this.run();
+  } else {
+    queueWatcher(this);
+  }
+};
+```
 
 
 
