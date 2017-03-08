@@ -515,7 +515,7 @@ Vue.prototype._render = function () {
 };
 
 
-// 新增与更新均使用__patch__()方法
+// 新增与更新均使用__patch__()方法：完成新旧vnode的对比
 Vue.prototype._update = function (vnode, hydrating) {
   var vm = this;
   if (vm._isMounted) {
@@ -556,6 +556,53 @@ Vue.prototype._update = function (vnode, hydrating) {
   }
 };
 ```
+
+```javascript
+// 
+function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
+  if (!vnode) {
+    if (oldVnode) { invokeDestroyHook(oldVnode); }
+    return
+  }
+
+  var elm, parent;
+  var isInitialPatch = false;
+  var insertedVnodeQueue = [];
+
+  if (!oldVnode) {
+    // empty mount (likely as component), create new root element
+    isInitialPatch = true;
+    createElm(vnode, insertedVnodeQueue, parentElm, refElm);
+  } else {
+    var isRealElement = isDef(oldVnode.nodeType);
+    if (!isRealElement && sameVnode(oldVnode, vnode)) {
+      // patch existing root node
+      patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly);
+    } else {
+      if (isRealElement) {
+        // mounting to a real element
+        // either not server-rendered, or hydration failed.
+        // create an empty node and replace it
+        oldVnode = emptyNodeAt(oldVnode);
+      }
+      // replacing existing element
+      elm = oldVnode.elm;
+      parent = nodeOps.parentNode(elm);
+      createElm(vnode, insertedVnodeQueue, parent, nodeOps.nextSibling(elm));
+
+      if (parent !== null) {
+        removeVnodes(parent, [oldVnode], 0, 0);
+      } else if (isDef(oldVnode.tag)) {
+        invokeDestroyHook(oldVnode);
+      }
+    }
+  }
+
+  invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch);
+  return vnode.elm
+}
+```
+
 
 
 
