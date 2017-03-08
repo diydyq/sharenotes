@@ -6,7 +6,7 @@
 Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上整体分为5个模块：
 
 1. Setter/Getter代理：UI界面层对数据的读写
-2. Observe类、Dep类、Watcher类：完成Component组件与Expression表达式（如：{{ ... }}}）的依赖管理
+2. Dep类、Watcher类、Observe类：完成Component组件与Expression表达式（如：{{ ... }}}）的依赖管理
 3. 模板编译前置AOT（Ahead Of Time）：将组件模板编译为DOM树节点，每个节点以函数的形式体现
 4. VNode的渲染：VNode与Document Element的转换
 5. Virtual-DOM中新旧VNode的对比：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
@@ -179,20 +179,20 @@ Object.defineProperty(Vue, 'config', configDef);
 ```
 
 
-## 模块2：Observe类、Dep类、Watcher类
+## 模块2：Dep类、Watcher类、Observe类
 
-如上所述，UI层修改时肯定会调用setter方法，但是修改之后是如何做到更新依赖的呢？它的依赖包括组件还是依赖该属性的其它表达式呢？这里的问题主要有3点：
+如上所述，UI层修改时肯定会调用setter方法，但是修改之后是如何做到更新使用方的呢？它的使用方是组件还是使用该属性的多个表达式呢？这里的问题主要有3点：
 
-1. 依赖于属性的组件/表达式怎么收集的？
-2. 依赖的组件/表达式接下来怎么更新？
+1. 使用该属性的组件/表达式怎么收集到的？
+2. 使用该属性的组件/表达式接下来怎么更新？
 3. 依赖管理是什么样子？好理解吗？
 
-从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，看来属性`key`与实例`dep`是一一对应的关系，那么使用`dep`在`getter`时收集依赖方，`setter`时通知依赖方是不是一种很好的方式呢？
+从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，看来属性`key`与实例`dep`是一一对应的关系，那么使用`dep`在`getter`时收集使用方，`setter`时通知使用方是不是一种很好的方式呢？
 
-确实！Vue2就是这么做的，`dep.depend();`负责收集依赖，`dep.notify();`负责通知依赖，如下面的源码片段：
+确实！Vue2就是这么做的，`dep.depend();`负责收集使用方，`dep.notify();`负责通知使用方，如下面的源码片段：
 
 ```javascript
-// 收集依赖
+// 收集使用方的类定义
 var Dep = function Dep () {
   this.id = uid$1++;
   this.subs = [];
@@ -210,7 +210,7 @@ Watcher.prototype.addDep = function addDep (dep) {
     this.newDepIds.add(id);
     this.newDeps.push(dep);
     if (!this.depIds.has(id)) {
-      // 将依赖方Watcher加入dep.subs数组中
+      // 将使用方Watcher加入dep.subs数组中
       dep.addSub(this);
     }
   }
@@ -218,7 +218,7 @@ Watcher.prototype.addDep = function addDep (dep) {
 ```
 
 ```javascript
-// 通知依赖
+// 通知使用方
 Dep.prototype.notify = function notify () {
   var subs = this.subs.slice();
   for (var i = 0, l = subs.length; i < l; i++) {
@@ -237,7 +237,7 @@ Watcher.prototype.update = function update () {
 };
 ```
 
-根据代码`dep.addSub(this);`看来依赖方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与调用场景才能得知：
+根据代码`dep.addSub(this);`得出使用方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与调用场景才能得知：
 
 
 ```javascript
@@ -346,11 +346,16 @@ Vue.prototype.$watch = function (
 
 ```
 
-可以看出，`Watcher`就是一个监听器，属性`deps, depIds`记录了每一个要监听的对象，当它们发生变化时，触发监听器的更新。那么更新的内容都包括哪些呢？很明显就是调用`new Watcher()`的地方了，即向构造函数传递`expOrFn`的参数；代码中显示了3处：
+可以看出，`Watcher`就是一个监听器，属性`deps, depIds`记录了每一个要监听的对象，即：`dep实例`，当它们发生变化时，触发监听器的更新。那么更新的内容都包括哪些呢？很明显就是调用`new Watcher()`的地方了，即向构造函数传递`expOrFn`的参数；代码中显示了3处：
 
 1. 当Vue组件渲染更新时，包括首次挂载时，随后模板`render`更新
 2. 当computed中某个属性key的`getter`函数声明中的某个变量更新时，触发该`getter`函数的重新执行
 3. 同理`watch`属性；
+
+所以，`Dep类`代表了属性`key`的使用方收集，`Watcher类`代表了监听对象收集，前者面向属性，后者面向组件，相互关联，配合使用。
+
+
+
 
 
 
