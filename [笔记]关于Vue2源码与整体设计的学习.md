@@ -3,7 +3,7 @@
 
 ## Vue2主要分为几个部分
 
-Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上整体分为这么几块：
+Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上整体分为5个模块：
 
 1. Setter/Getter代理：UI界面层对数据的读写
 2. Observe类、Dep类、Watcher类：完成Component组件与Expression表达式（如：{{ ... }}}）的依赖管理
@@ -12,7 +12,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 5. Virtual-DOM中新旧VNode的对比：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
 
 
-## Setter/Getter代理
+## 模块1：Setter/Getter代理
 
 众所周知，Vue1&2里都利用了JS的Getter/Setter完成UI层中数据的读写，那不可避免的就必然会用到一个API：**Object.defineProperty(obj, key, { ... })**，源码中的使用有以下几处：
 
@@ -159,7 +159,7 @@ function defineReactive$$1 (
 ```javascript
 // 4. 公用Util
 // 4.1 如：代理数组原型方法（'push','pop','shift','unshift','splice','sort','reverse'），在数组实例修改时触发脏数据检查
-// 4.2 如：为data中的对象定义**__ob__**观察对象
+// 4.2 如：为data中的对象定义key为__ob__的观察对象
 function def (obj, key, val, enumerable) {
   Object.defineProperty(obj, key, {
     value: val,
@@ -179,9 +179,13 @@ Object.defineProperty(Vue, 'config', configDef);
 ```
 
 
-## Observe类、Dep类、Watcher类
+## 模块2：Observe类、Dep类、Watcher类
 
+如上所述，UI层修改时肯定会调用setter方法，但是修改之后是如何做到更新依赖的呢？它的依赖包括组件还是依赖该属性的其它表达式呢？这里的问题主要有3点：
 
+1. 依赖于属性的组件/表达式怎么收集的？
+2. 依赖的组件/表达式接下来怎么更新？
+3. 依赖管理是什么样子？好理解吗？
 
 
 
