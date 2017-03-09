@@ -452,10 +452,10 @@ function flushSchedulerQueue () {
 
 ```
 
-还记得否？`Vue.prototype._mount()`中的`expOrFn`主要有两个步骤：
+还记得否？`Vue.prototype._mount()`中的`expOrFn`主要有两个步骤（代码分别如下）：
 
-1. vm._render()：执行组件的render()，返回VNode树节点；参见`Vue.prototype._render`
-2. vm._update(vNode)：将最新生成的VNode与当前组件的vNode进行对比并更新，参见`Vue.prototype._render`
+1. vm._render()：执行组件的render()，返回VNode树节点；参见`Vue.prototype._render`中的`vnode = render.call(...)`
+2. vm._update(vNode)：将最新生成的VNode与当前组件的vNode进行对比并更新，参见`Vue.prototype._render`中的`vm.__patch__(...)`
 
 ```javascript
 // 组件render()的调用
@@ -559,8 +559,10 @@ Vue.prototype._update = function (vnode, hydrating) {
 };
 ```
 
+上面可以看出：组件的新增、更新、销毁都会调用`__patch__(oldVnode, vnode, ...)`完成VNode到HTML DOM节点的转换。新增时传递`vm.$el`，更新时传递`vm._vnode`，内部通过`nodeType`区别，前者接下来`createElm(...)`，后者接下来`patchVnode(...)`，并且在真正的DOM更新之前，已经赋值最新VNode：`vm._vnode = vnode;`。
+
+
 ```javascript
-// 
 function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
   if (!vnode) {
     if (oldVnode) { invokeDestroyHook(oldVnode); }
@@ -603,7 +605,10 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
   invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch);
   return vnode.elm
 }
+```
 
+```javascript
+// 更新vnode节点
 function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
   if (oldVnode === vnode) {
     return
@@ -634,17 +639,23 @@ function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
     if (isDef(i = data.hook) && isDef(i = i.update)) { i(oldVnode, vnode); }
   }
   if (isUndef(vnode.text)) {
+  	// 如果新的不是文本节点
     if (isDef(oldCh) && isDef(ch)) {
+      // 如果两者都存在
       if (oldCh !== ch) { updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly); }
     } else if (isDef(ch)) {
+   	  // 如果只有新的是节点，旧的不是，则：创建节点
       if (isDef(oldVnode.text)) { nodeOps.setTextContent(elm, ''); }
       addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
     } else if (isDef(oldCh)) {
+      // 如果只有旧的是节点，新的不是，则：删除节点
       removeVnodes(elm, oldCh, 0, oldCh.length - 1);
     } else if (isDef(oldVnode.text)) {
+      // 如果只有就的文本节点，则：赋值空串
       nodeOps.setTextContent(elm, '');
     }
   } else if (oldVnode.text !== vnode.text) {
+  	// 如果新旧都是文本节点，则赋值文本
     nodeOps.setTextContent(elm, vnode.text);
   }
   if (hasData) {
