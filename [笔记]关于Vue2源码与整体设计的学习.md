@@ -3,7 +3,7 @@
 
 ## Vue2主要分为几个部分
 
-Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做了一个分享；站在数据驱动框架的角度，我把它分为5个模块：
+Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做了一个分享；站在数据驱动框架的角度，我把它分为6个模块：
 
 1. `Setter/Getter代理`：UI界面层对数据的读写
 2. `Dep类、Watcher类`：Vue组件与Expression表达式（如：{{ ... }}}）或者属性的依赖管理
@@ -12,6 +12,11 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 5. `Virtual-DOM中新旧VNode的对比`：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
 6. `VNode到HTML的渲染`：VNode与Document Element的转换
 
+如果用一张图来标识大概关系是这样的：
+
+![Vue2的数据驱动](https://github.com/diydyq/sharenotes/blob/master/demo/static/images/Vue2_DataDrive.png)
+
+下面依次减少各个模块：
 
 ## 模块1：Setter/Getter代理
 
