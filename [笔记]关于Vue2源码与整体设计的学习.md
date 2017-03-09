@@ -371,15 +371,17 @@ Vue.prototype.$watch = function (
 在JS打包合并时，将组件的模板HTML字符串转换为DOM片段，可以带来两点性能优势：
 
 1. 避免浏览器运行时编译模板的性能损耗；
-2. 避免Vue脚本中携带编译模板的JS引擎代码，减小体积；
-3. 避免HTML字符串出现在脚本中，取而代之的是编译后的函数化模板；（所以这点算不上性能优势）
+2. 避免Vue脚本中携带编译模板的DOM解析引擎代码，减小体积；
+3. 避免HTML字符串出现在脚本中，取而代之的是编译后的函数化模板；（因为体积基本没有减小，反而还会因为`_c,_m,{},[]`等标识而增加一点）
 
 Vue2在DOM片段转换后，进而转换为可以执行的函数，[查看官网介绍](https://cn.vuejs.org/v2/guide/render-function.html#模板编译)，好处如下：
 
-1. 避免JSON化的DOM片段携带meta信息，如：某节点是空节点、文本节点、还是元素节点等；
-2. 函数区分为：render、staticRenderFns；后者标识子节点为纯HTML，在组件渲染时直接取之前的缓存即可，优化性能；
+1. 避免JSON化的DOM树节点携带meta信息，如：某节点是空节点、文本节点、还是元素节点等；
+2. 函数区分为：render、staticRenderFns；后者标识该节点及其子节点为纯HTML，在组件渲染时直接取之前的缓存即可，优化性能；
 
-函数执行后得到的是一个VNode树节点，它与Vue组件形成一一对应的关系（因为`_c|createElement`定义在vm上，搜索`vm._c`得知），就像Vue组件与Vue模板。
+函数执行后得到的是一个VNode树根节点，它与具体的某个Vue组件形成一一对应的关系（因为`_c|createElement`定义在vm上，搜索`vm._c`得知），就像Vue组件与Vue模板。
+
+关于详细的`解析DOM字符串、优化、生成函数`请参考[这里](https://github.com/vuejs/vue/blob/dev/src/compiler/index.js)。
 
 
 ## 模块4：Virtual-DOM中新旧VNode的对比
