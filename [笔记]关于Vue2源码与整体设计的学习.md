@@ -188,12 +188,14 @@ Object.defineProperty(Vue, 'config', configDef);
 2. 使用该属性的组件/表达式接下来怎么更新？
 3. 依赖管理是什么样子？好理解吗？
 
-从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，看来属性`key`与实例`dep`是一一对应的关系，那么使用`dep`在`getter`时收集使用方，`setter`时通知使用方是不是一种很好的方式呢？
+从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，看来属性`key`与实例`dep`是一一对应的关系。
+
+那么在调用`getter`时通过`dep`收集使用方，`setter`时通知使用方是不是一种很好的方式呢？
 
 确实！Vue2就是这么做的，`dep.depend();`负责收集使用方，`dep.notify();`负责通知使用方，如下面的源码片段：
 
 ```javascript
-// 收集使用方的类定义
+// 收集使用方
 var Dep = function Dep () {
   this.id = uid$1++;
   this.subs = [];
@@ -238,11 +240,11 @@ Watcher.prototype.update = function update () {
 };
 ```
 
-根据代码`dep.addSub(this);`得出使用方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与调用场景才能得知：
+根据代码`dep.addSub(this);`得出使用方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与Watcher的调用场景才能得知：
 
 
 ```javascript
-// 传递vue组件，deps,depIds记录组件中的key调用
+// 传递vue组件，deps,depIds记录组件中的属性key的使用
 var Watcher = function Watcher (
   vm,
   expOrFn,
@@ -289,7 +291,7 @@ var Watcher = function Watcher (
     : this.get();
 };
 
-// 调用1：在组件挂载mount的生命周期中实例化
+// 调用场景1：在组件挂载mount的生命周期中实例化
 Vue.prototype._mount = function (
   el,
   hydrating
@@ -312,7 +314,7 @@ Vue.prototype._mount = function (
   }
   return vm
 };
-// 调用2：代理computed属性的getter自定义方法，dirty后重新执行
+// 调用场景2：代理computed属性的getter自定义方法，dirty后重新执行
 function makeComputedGetter (getter, owner) {
   var watcher = new Watcher(owner, getter, noop, {
     lazy: true
@@ -327,7 +329,7 @@ function makeComputedGetter (getter, owner) {
     return watcher.value
   }
 }
-// 调用3：在watch属性中的使用
+// 调用场景3：在watch属性中的使用
 Vue.prototype.$watch = function (
   expOrFn,
   cb,
@@ -347,13 +349,13 @@ Vue.prototype.$watch = function (
 
 ```
 
-可以看出，`Watcher`就是一个监听器，属性`deps, depIds`记录了每一个要监听的对象，即：`dep实例`，当它们发生变化时，触发监听器的更新。那么更新的内容都包括哪些呢？很明显就是调用`new Watcher()`的地方了，即向构造函数传递`expOrFn`的参数；代码中显示了3处：
+可以看出，`Watcher`就是一个监听器，属性`deps, depIds`记录了每一个要监听的对象，即：监听`dep实例`，当属性key修改导致setter被调用时，就会触发监听器的更新。那么更新的内容都包括哪些呢？很明显就是调用`new Watcher()`的地方了，即向构造函数传递`expOrFn`的参数；代码中显示了3处：
 
-1. 当Vue组件渲染更新时，包括首次挂载时，随后模板`render`更新
+1. 当Vue组件渲染更新时，包括首次挂载时，随后模板`render`、`update`
 2. 当computed中某个属性key的`getter`函数声明中的某个变量更新时，触发该`getter`函数的重新执行
 3. 同理`watch`属性；
 
-所以，`Dep类`代表了属性`key`的使用方收集，`Watcher类`代表了监听对象收集，前者面向属性，后者面向组件，相互关联，配合使用。
+所以，`Dep类`代表了组件属性`key`的使用方收集，`Watcher类`代表了监听对象收集，前者面向属性，后者面向组件，相互关联，配合使用。并且属性key的使用方记录是：组件级别，而不是表达式级别。
 
 注：代码中`Dep`应该代表`Dependency`，我没有直接翻译为`依赖`，而是`使用方收集`，请留意。
 
@@ -560,7 +562,7 @@ Vue.prototype._update = function (vnode, hydrating) {
 };
 ```
 
-上面可以看出：组件的新增、更新、销毁都会调用`__patch__(oldVnode, vnode, ...)`完成VNode到HTML DOM节点的转换。新增时传递`vm.$el`，更新时传递`vm._vnode`，内部通过`nodeType`区别，前者接下来`createElm(...)`，后者接下来`patchVnode(...)`，并且在真正的DOM更新之前，已经赋值最新VNode到组件上：`vm._vnode = vnode;`。
+上面可以看出：组件的新增、更新、销毁都会调用`__patch__(oldVnode, vnode, ...)`完成VNode到HTML DOM节点的转换。新增时传递`vm.$el`，更新时传递`vm._vnode`，内部通过`nodeType`区别，前者接下来`createElm(...)`，后者接下来`patchVnode(...)`，并且在真正的DOM更新之前，已经赋值最新VNode到组件上，如代码所示：`vm._vnode = vnode;`。
 
 
 ```javascript
@@ -618,11 +620,11 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 
 有的同学说了，这不很简单吗？
 
-1. 对比VNode自身，包括：attribute、class、style、event listener
-2. 循环对比VNode的子节点，子节点逐个的对比又递归调用
+1. 对比VNode节点本身，包括：attribute、class、style、event listener
+2. 循环对比VNode的子节点，子节点的逐个对比又递归调用
 3. 复杂的情况下考虑缓存
 
-嗯，这么说其实也确实是这么回事！不过`Talk is cheap, show me the code！`，真是的Vue2实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，大家可以看下。
+嗯，我认为这么说也确实是这么回事！不过`Talk is cheap, show me the code！`，真是的Vue2这块的实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，大家可以看下。
 
 
 ```javascript
@@ -759,13 +761,65 @@ function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly
 }
 ```
 
-
-
-
 ## 模块6：VNode到HTML的渲染
 
+关于这一块，感觉没啥好讲的，看看下面的源码调用就可以了。
 
+```javascript
+function createElm (vnode, insertedVnodeQueue, parentElm, refElm, nested) {
+    vnode.isRootInsert = !nested; // for transition enter check
+    if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
+      return
+    }
 
+    var data = vnode.data;
+    var children = vnode.children;
+    var tag = vnode.tag;
+    if (isDef(tag)) {
+      if (process.env.NODE_ENV !== 'production') {
+        if (data && data.pre) {
+          inPre++;
+        }
+        if (
+          !inPre &&
+          !vnode.ns &&
+          !(config.ignoredElements.length && config.ignoredElements.indexOf(tag) > -1) &&
+          config.isUnknownElement(tag)
+        ) {
+          warn(
+            'Unknown custom element: <' + tag + '> - did you ' +
+            'register the component correctly? For recursive components, ' +
+            'make sure to provide the "name" option.',
+            vnode.context
+          );
+        }
+      }
+      vnode.elm = vnode.ns
+        ? nodeOps.createElementNS(vnode.ns, tag)
+        : nodeOps.createElement(tag, vnode);
+      setScope(vnode);
+
+      /* istanbul ignore if */
+      {
+        createChildren(vnode, children, insertedVnodeQueue);
+        if (isDef(data)) {
+          invokeCreateHooks(vnode, insertedVnodeQueue);
+        }
+        insert(parentElm, vnode.elm, refElm);
+      }
+
+      if (process.env.NODE_ENV !== 'production' && data && data.pre) {
+        inPre--;
+      }
+    } else if (vnode.isComment) {
+      vnode.elm = nodeOps.createComment(vnode.text);
+      insert(parentElm, vnode.elm, refElm);
+    } else {
+      vnode.elm = nodeOps.createTextNode(vnode.text);
+      insert(parentElm, vnode.elm, refElm);
+    }
+}
+```
 
 
 ## 是否有继续优化的空间
