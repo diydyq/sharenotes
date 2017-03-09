@@ -16,7 +16,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 ![Vue2的数据驱动](https://github.com/diydyq/sharenotes/blob/master/demo/static/images/Vue2_DataDrive.png)
 
-下面依次减少各个模块：
+下面依次介绍各个模块：
 
 ## 模块1：Setter/Getter代理
 
