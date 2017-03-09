@@ -3,7 +3,7 @@
 
 ## Vue2主要分为几个部分
 
-Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上我把它分为5个模块：
+Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做了一个分享；站在数据驱动框架的角度，我把它分为5个模块：
 
 1. `Setter/Getter代理`：UI界面层对数据的读写
 2. `Dep类、Watcher类`：Vue组件与Expression表达式（如：{{ ... }}}）或者属性的依赖管理
@@ -19,22 +19,6 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 ```javascript
 // 1. vueInstance.initData()对data属性中的每条数据key做代理，将每条key定义在组件实例上
-// 注意：这个调用仅涉及data的直接属性，深层次的setter/getter是另一个方法
-function proxy (vm, key) {
-  if (!isReserved(key)) {
-    Object.defineProperty(vm, key, {
-      configurable: true,
-      enumerable: true,
-      get: function proxyGetter () {
-        return vm._data[key]
-      },
-      set: function proxySetter (val) {
-        vm._data[key] = val;
-      }
-    });
-  }
-}
-
 function initData (vm) {
   var data = vm.$options.data;
   data = vm._data = typeof data === 'function'
@@ -65,6 +49,22 @@ function initData (vm) {
   }
   // observe data
   observe(data, true /* asRootData */);
+}
+
+// 注意：这个调用仅涉及data的直接属性，深层次的setter/getter是另一个方法
+function proxy (vm, key) {
+  if (!isReserved(key)) {
+    Object.defineProperty(vm, key, {
+      configurable: true,
+      enumerable: true,
+      get: function proxyGetter () {
+        return vm._data[key]
+      },
+      set: function proxySetter (val) {
+        vm._data[key] = val;
+      }
+    });
+  }
 }
 ```
 
@@ -576,6 +576,7 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 
   if (!oldVnode) {
     // empty mount (likely as component), create new root element
+    // 子组件，创建时没有root挂载节点
     isInitialPatch = true;
     createElm(vnode, insertedVnodeQueue, parentElm, refElm);
   } else {
