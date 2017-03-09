@@ -3,13 +3,14 @@
 
 ## Vue2主要分为几个部分
 
-Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上整体分为5个模块：
+Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很快，并且围绕Vue2源码学习做一个分享，从数据驱动框架的角度上我把它分为5个模块：
 
 1. `Setter/Getter代理`：UI界面层对数据的读写
 2. `Dep类、Watcher类`：Vue组件与Expression表达式（如：{{ ... }}}）或者属性的依赖管理
-3. `模板编译前置AOT（Ahead Of Time）`：将组件模板编译为DOM树节点，每个节点以函数的形式体现
-4. `VNode到HTML的渲染`：VNode与Document Element的转换
+3. `模板编译前置AOT（Ahead Of Time）`：将组件模板编译为函数化的VNode树节点
+4. `Watcher类的执行与VNode更新`：从产出VNode节点与更新VNode节点
 5. `Virtual-DOM中新旧VNode的对比`：两颗VNode树节点，如何以最优的算法，找到不同点并进行更新
+6. `VNode到HTML的渲染`：VNode与Document Element的转换
 
 
 ## 模块1：Setter/Getter代理
@@ -384,7 +385,7 @@ Vue2在DOM片段转换后，进而转换为可以执行的函数，[查看官网
 关于详细的`解析DOM字符串、优化、生成函数`请参考[这里](https://github.com/vuejs/vue/blob/dev/src/compiler/index.js)。
 
 
-## 模块4：Virtual-DOM中新旧VNode的对比
+## 模块4：Watcher类的执行与VNode更新
 
 如前所述，组件首次渲染或者data属性修改时，都会触发Watcher实例的更新：`subs[i].update();`，Watcher接下来将被放入待执行队列中，待多个WatcherList优先级排序后，开始执行，如下面的代码：
 
@@ -581,6 +582,7 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
     var isRealElement = isDef(oldVnode.nodeType);
     if (!isRealElement && sameVnode(oldVnode, vnode)) {
       // patch existing root node
+      // 不是Document节点，即VNode，说明是更新操作
       patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly);
     } else {
       if (isRealElement) {
@@ -592,6 +594,7 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
       // replacing existing element
       elm = oldVnode.elm;
       parent = nodeOps.parentNode(elm);
+      // 是Document节点，说明新增操作，接下来创建Element、Component等
       createElm(vnode, insertedVnodeQueue, parent, nodeOps.nextSibling(elm));
 
       if (parent !== null) {
@@ -606,6 +609,11 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
   return vnode.elm
 }
 ```
+
+
+## 模块5：Virtual-DOM中新旧VNode的对比
+
+
 
 ```javascript
 // 更新vnode节点
@@ -634,6 +642,7 @@ function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
   var elm = vnode.elm = oldVnode.elm;
   var oldCh = oldVnode.children;
   var ch = vnode.children;
+  // 针对本节点的操作（不包括children）
   if (hasData && isPatchable(vnode)) {
     for (i = 0; i < cbs.update.length; ++i) { cbs.update[i](oldVnode, vnode); }
     if (isDef(i = data.hook) && isDef(i = i.update)) { i(oldVnode, vnode); }
@@ -742,7 +751,7 @@ function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly
 
 
 
-## 模块5：VNode到HTML的渲染
+## 模块6：VNode到HTML的渲染
 
 
 
