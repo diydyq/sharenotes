@@ -560,7 +560,7 @@ Vue.prototype._update = function (vnode, hydrating) {
 };
 ```
 
-上面可以看出：组件的新增、更新、销毁都会调用`__patch__(oldVnode, vnode, ...)`完成VNode到HTML DOM节点的转换。新增时传递`vm.$el`，更新时传递`vm._vnode`，内部通过`nodeType`区别，前者接下来`createElm(...)`，后者接下来`patchVnode(...)`，并且在真正的DOM更新之前，已经赋值最新VNode：`vm._vnode = vnode;`。
+上面可以看出：组件的新增、更新、销毁都会调用`__patch__(oldVnode, vnode, ...)`完成VNode到HTML DOM节点的转换。新增时传递`vm.$el`，更新时传递`vm._vnode`，内部通过`nodeType`区别，前者接下来`createElm(...)`，后者接下来`patchVnode(...)`，并且在真正的DOM更新之前，已经赋值最新VNode到组件上：`vm._vnode = vnode;`。
 
 
 ```javascript
@@ -613,6 +613,15 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 
 ## 模块5：Virtual-DOM中新旧VNode的对比
 
+给定新旧两个VNode的树节点，对比找出不同的地方并进行更新，是个值得关注的问题，这也是性能体现的地方，做得好直接复用，做的不好导致频繁的DOM插入删除操作。
+
+有的同学说了，这不很简单吗？
+
+1. 对比VNode自身，包括：attribute、class、style、event listener
+2. 循环对比VNode的子节点，子节点逐个的对比又递归调用
+3. 复杂的情况下考虑缓存
+
+嗯，这么说其实也确实是这么回事！不过`Talk is cheap, show me the code！`，真是的Vue2实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，大家可以看下。
 
 
 ```javascript
@@ -625,6 +634,7 @@ function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
   // note we only do this if the vnode is cloned -
   // if the new node is not cloned it means the render functions have been
   // reset by the hot-reload-api and we need to do a proper re-render.
+  // 如果是纯HTML标识，则不用管；
   if (vnode.isStatic &&
     oldVnode.isStatic &&
     vnode.key === oldVnode.key &&
