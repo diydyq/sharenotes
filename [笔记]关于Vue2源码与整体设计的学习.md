@@ -20,7 +20,7 @@ Vue2是在16年10月推出，优势较之前很明显，所以团队里升级很
 
 ## 模块1：Setter/Getter代理
 
-众所周知，Vue1&2里都利用了JS的Getter/Setter完成UI层中数据的读写，那不可避免的就必然会用到一个API：`Object.defineProperty(obj, key, { ... })`，源码中的使用有以下几处：
+众所周知，Vue1&2里都利用了JS的Getter/Setter完成UI层中数据的读写，那不可避免的就会用到一个API：`Object.defineProperty(obj, key, { ... })`，源码中的使用有以下几处：
 
 ```javascript
 // 1. vueInstance.initData()对data属性中的每条数据key做代理，将每条key定义在组件实例上
