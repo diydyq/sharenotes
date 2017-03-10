@@ -56,7 +56,7 @@ function initData (vm) {
   observe(data, true /* asRootData */);
 }
 
-// 注意：这个调用仅涉及data的直接属性，深层次的setter/getter是另一个方法
+// 注意：这个调用仅涉及data的直接属性，直接赋值到`vm`上，`vm._data`存放了代理后的数据；深层次的setter/getter是另一个方法
 function proxy (vm, key) {
   if (!isReserved(key)) {
     Object.defineProperty(vm, key, {
@@ -74,7 +74,7 @@ function proxy (vm, key) {
 ```
 
 ```javascript
-// 2. vueInstance.initComputed()对computed属性中的每条数据做代理，这里方便直接定义Getter，所以Setter为noop空函数；
+// 2. vueInstance.initComputed()对computed属性中的每条数据做代理，注意：这里只定义了Getter，Setter为noop空函数；
 function initComputed (vm, computed) {
   for (var key in computed) {
     /* istanbul ignore if */
@@ -102,10 +102,25 @@ function initComputed (vm, computed) {
     Object.defineProperty(vm, key, computedSharedDefinition);
   }
 }
+
+function makeComputedGetter (getter, owner) {
+  var watcher = new Watcher(owner, getter, noop, {
+    lazy: true
+  });
+  return function computedGetter () {
+    if (watcher.dirty) {
+      watcher.evaluate();
+    }
+    if (Dep.target) {
+      watcher.depend();
+    }
+    return watcher.value
+  }
+}
 ```
 
 ```javascript
-// 3. 对属性值为obj字典对象的属性代理
+// 3. 对属性值为obj字典对象类型的属性代理
 function defineReactive$$1 (
   obj,
   key,
@@ -178,9 +193,31 @@ function def (obj, key, val, enumerable) {
 
 ```javascript
 // 5. 避免直接对vueInstance.$data和Vue.config的直接直接：
-// vueInstance.$data
+// 5.1 如：vueInstance.$data
+var dataDef = {};
+dataDef.get = function () {
+  return this._data
+};
+{
+  dataDef.set = function (newData) {
+    warn(
+      'Avoid replacing instance root $data. ' +
+      'Use nested data properties instead.',
+      this
+    );
+  };
+}
 Object.defineProperty(Vue.prototype, '$data', dataDef);
-// Vue.config
+// 5.2 如：Vue.config
+var configDef = {};
+configDef.get = function () { return config; };
+{
+  configDef.set = function () {
+    warn(
+      'Do not replace the Vue.config object, set individual fields instead.'
+    );
+  };
+}
 Object.defineProperty(Vue, 'config', configDef);
 ```
 
