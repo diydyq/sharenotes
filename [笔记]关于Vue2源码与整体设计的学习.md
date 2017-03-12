@@ -224,7 +224,7 @@ Object.defineProperty(Vue, 'config', configDef);
 
 ## 模块2：Dep类、Watcher类
 
-如上所述，UI层修改某个属性时肯定会调用setter方法，但是修改之后是如何做到更新使用方的呢？它的使用方肯定会记录下来，那么记录的是组件还是使用该属性的多个表达式呢？这里的问题主要有3点：
+如上所述，UI层修改某个属性时肯定会调用setter方法，但是修改之后是如何做到更新使用方的呢？该属性的使用方肯定需要记录下来，那么记录的是组件还是使用该属性的多个表达式呢？这里的问题主要有3点：
 
 1. 使用该属性的组件/表达式怎么收集到的？
 2. 使用该属性的组件/表达式接下来怎么更新？
@@ -232,7 +232,7 @@ Object.defineProperty(Vue, 'config', configDef);
 
 从上面`代码块：3. 对属性值为obj字典对象的属性代理`的代码中，我们可以看到：对象`obj`中的每个属性`key`原本的值`val`都会重新以`defineProperty()`的方式重新定义；同时针对每个属性`key`，都会以闭包的形式定义对应的`Dep`实例`dep`，看来属性`key`与实例`dep`是一一对应的关系。
 
-那么在调用`getter`时通过`dep`收集使用方，`setter`时通知使用方是不是一种很好的方式呢？
+**那么在调用`getter`时通过`dep`收集使用方，`setter`时通知使用方是不是一种很好的方式呢？**
 
 确实！Vue2就是这么做的，`dep.depend();`负责收集使用方，`dep.notify();`负责通知使用方，如下面的源码片段：
 
@@ -282,7 +282,7 @@ Watcher.prototype.update = function update () {
 };
 ```
 
-根据代码`dep.addSub(this);`得出使用方一定是个`Watcher`；那`Watcher`代表的是啥？看看构造函数与Watcher的调用场景才能得知：
+根据代码`dep.addSub(this);`得出使用方是个`Watcher`；那`Watcher`类代表的是啥？看看构造函数与`Watcher`的调用场景才能得知：
 
 
 ```javascript
@@ -393,7 +393,7 @@ Vue.prototype.$watch = function (
 
 可以看出，`Watcher`就是一个监听器，属性`deps, depIds`记录了每一个要监听的对象，即：监听`dep实例`，当属性key修改导致setter被调用时，就会触发监听器的更新。那么更新的内容都包括哪些呢？很明显就是调用`new Watcher()`的地方了，即向构造函数传递`expOrFn`的参数；代码中显示了3处：
 
-1. 当Vue组件渲染更新时，包括首次挂载时，随后模板`render`、`update`
+1. 当Vue组件渲染更新时，包括首次挂载时，引起组件`render()`、`update()`
 2. 当computed中某个属性key的`getter`函数声明中的某个变量更新时，触发该`getter`函数的重新执行
 3. 同理`watch`属性；
 
@@ -426,7 +426,7 @@ Vue2在DOM片段转换后，进而转换为可以执行的函数，[查看官网
 
 函数执行后得到的是一个VNode树根节点，它与具体的某个Vue组件形成一一对应的关系（因为`_c|createElement`定义在vm上，搜索`vm._c`得知），就像Vue组件与Vue模板。
 
-关于详细的`解析DOM字符串、优化、生成函数`请参考[这里](https://github.com/vuejs/vue/blob/dev/src/compiler/index.js)。
+关于详细的`解析DOM字符串、优化、生成函数`请参考[官方Vue2源码：Compile](https://github.com/vuejs/vue/blob/dev/src/compiler/index.js)。
 
 
 ## 模块4：Watcher类的执行与VNode更新
@@ -499,8 +499,8 @@ function flushSchedulerQueue () {
 
 还记得否？`Vue.prototype._mount()`中的`expOrFn`主要有两个步骤（代码分别如下）：
 
-1. vm._render()：执行组件的render()，返回VNode树节点；参见`Vue.prototype._render`中的`vnode = render.call(...)`
-2. vm._update(vNode)：将最新生成的VNode与当前组件的vNode进行对比并更新，参见`Vue.prototype._render`中的`vm.__patch__(...)`
+1. vm._render()：执行组件的render()，返回VNode树节点；参见`Vue.prototype._render`中的`vnode = render.call(...)`；
+2. vm._update(vNode)：将最新生成的VNode与当前组件的vNode进行对比并更新，参见`Vue.prototype._render`中的`vm.__patch__(...)`；
 
 ```javascript
 // 组件render()的调用
@@ -666,7 +666,7 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 2. 循环对比VNode的子节点，子节点的逐个对比又递归调用
 3. 复杂的情况下考虑缓存
 
-嗯，我认为这么说也确实是这么回事！不过`Talk is cheap, show me the code！`，真是的Vue2这块的实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，大家可以看下。
+嗯，我认为这么说也确实是这么回事。不过`Talk is cheap, show me the code!`真实的Vue2这块的实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，推荐大家看下。
 
 
 ```javascript
@@ -866,9 +866,25 @@ function createElm (vnode, insertedVnodeQueue, parentElm, refElm, nested) {
 
 ## 是否有继续优化的空间
 
+较细粒度阅读源代码并做一些Demo之后，实现和我想的预设不太一样，是否可以作为进一步的优化选择呢？
 
+1. 组件data属性的定义能否由`vue-loader`来处理？
 
+实际上当我开发一个组件时，我先考虑的是`template`模板的结构与内容（比如：这个标签显示标题，另一个标签显示数组内容），而不是`data`属性中各对象的定义；或者即使当组件开发完成后，仍然会遇到修改模板与属性定义；
 
+其实修改`data`属性定义是我们开发中的一种额外操作（因为Vue是这样约束的，否则在`null`上访问属性会报错），那么vue-loader在编译组件模板时：**发现定义关系，并修改源码添加到data属性中**，会不会是一点效率的提升呢？
+
+2. `prop`与`data`模糊
+
+我们说`prop`表示从父组件传递过来的数据，`data`表示组件内部自定义的数据；Vue2中不推荐子组件修改父组件的数据（依据在[这里](https://cn.vuejs.org/v2/guide/migration.html#修改-Props-弃用)），建议把修改的对象放到子组件上，可是子组件重新渲染时，也必然会导致数据丢失呀。
+
+`prop`与`data`同时存在，让我疑惑的同时增加了理解负担，建议两者合并为一。
+
+3. 关于Virtual-DOM中VNode节点的对比
+
+当前来看，Vue2使用了其中的staticFn的能力，做到了对纯VNode节点的简单对比功能（无需递归）；然而在某些情况下，仍然无法避免重新创建节点并删除上次已经创建的节点，还是有一点点的浪费。不排除我们需要设置`key`来进行标识以避免递归创建。
+
+4. 
 
 
 
