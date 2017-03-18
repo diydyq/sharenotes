@@ -666,7 +666,18 @@ function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 2. 循环对比VNode的子节点，子节点的逐个对比又递归调用
 3. 复杂的情况下考虑缓存
 
-嗯，我认为这么说也确实是这么回事。不过`Talk is cheap, show me the code!`真实的Vue2这块的实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，推荐大家看下。
+嗯，我认为这么说也确实是这么回事。不过`Talk is cheap, show me the code!`
+
+真实的Vue2实现还是和我想的有些区别，下面的两个方法：`patchVNode()`和`updateChildren()`递归调用，推荐大家看下，主要是考虑两类情况：
+
+1. 有key的情况：很明显，有key时的vnode应该使用oldVnodeList的cache能力；
+2. 无key得情况：通过startIndex|endIndex不断向中间靠拢，直到不同时开始创建节点；这种情况在`v-for`指令数据增加时表现很好，两个`v-for`的数据减少时可能会创建节点，除非中间有`static key`的节点出来；
+
+
+由此也有两个发现：
+
+1. 目前在`Vue 2.2`的版本上，`<div>between two v-for</div>`并未生成`static key`；不知道是否是BUG
+2. `v-once`由于只在组件初始化时固定下来，因此重新渲染组件时就会导致数据丢失，因此在`v-for`中需要用`key`来保证从缓存中取
 
 
 ```javascript
@@ -884,7 +895,9 @@ function createElm (vnode, insertedVnodeQueue, parentElm, refElm, nested) {
 
 - 关于Virtual-DOM中VNode节点的对比
 
-当前来看，Vue2使用了其中的staticFn的能力，做到了对纯HTML的VNode节点的简单对比功能（通过key静态能力，无需递归）；然而在某些情况下，仍然无法避免重新创建节点并删除上次已经创建的节点，还是有一点点的浪费。不排除我们需要设置`key`来进行标识以避免递归创建。
+当前来看，Vue2使用了其中的staticFn的能力，做到了对纯HTML的VNode节点的简单对比功能（通过key静态能力，无需递归）；然而在某些情况下，仍然无法避免重新创建节点并删除上次已经创建的节点，还是有一点点的浪费。不排除我们需要设置`key`来进行标识以避免重复创建。
+
+另外，`static key`的能力现在已不局限于了`pure html`了，可以尝试再从**内部data渲染**的角度来避免节点**创建与更新**；
 
 
 - 关于`Dep`与`Watcher`的关系
