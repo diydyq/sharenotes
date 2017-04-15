@@ -6,6 +6,7 @@
 
 - [[笔记]关于tree-shaking与webpack2升级变化](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5D%E5%85%B3%E4%BA%8Etree-shaking%E4%B8%8Ewebpack2%E5%8D%87%E7%BA%A7%E5%8F%98%E5%8C%96.md)
 - [[笔记]关于Vue2源码与整体设计的学习](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5D%E5%85%B3%E4%BA%8EVue2%E6%BA%90%E7%A0%81%E4%B8%8E%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%AD%A6%E4%B9%A0.md)
+- [[笔记]前端工程师眼里的Gradle]()
 
 
 ## 翻译
