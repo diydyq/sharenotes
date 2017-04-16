@@ -56,5 +56,5 @@ Ant缺点之一是缺乏对依赖jar包的维护和管理，项目对依赖jar�
 
 1. [Gradle构建工具官网](https://gradle.org/)
 2. [Apache Groovy语言官网](http://www.groovy-lang.org/index.html)
-3. [动态语言Groovy与静态语言Java](https://docs.gradle.org/3.5/userguide/userguide.html)
+3. [动态语言Groovy与静态语言Java](https://www.zhihu.com/question/19918532)
 
