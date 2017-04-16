@@ -27,15 +27,34 @@ Ant缺点之一是缺乏对依赖jar包的维护和管理，项目对依赖jar�
 4. 保持兼容：对于以往采用Ant，Maven构建的项目保持最大程度的复用
 
 
+## Gradle快速了解
 
-## Gradle怎么快速掌握
+快速学习Gradle分为三个部分：
+
+1. [语法部分](http://www.groovy-lang.org/documentation.html)
+
+由于Gradle采用了Groovy语言作为脚本，因此先必须了解很简洁的语法介绍：[代码风格：Style guide](http://www.groovy-lang.org/style-guide.html)，[语法部分：Syntax](http://www.groovy-lang.org/syntax.html)，[闭包部分：Closures](http://www.groovy-lang.org/closures.html)
+
+2. 工程部分
+
+在命令行执行`gradle init`会产生如下几个文件：
+
+- `文件build.gradle`是要执行的脚本；
+- `目录gradle`通常用来盛放gradlew（Gradle Wrapper）的内容，执行`文件gradlew|gradlew.bat`即可完成Gradle的版本下载、方便管理；
+- `目录.gradle`盛放一些中间产出taskArtifacts
+- `文件settings.properties`放置子项目subprojects的一些配置信息
+
+在命令行执行`gradle -q taskName`就是开始进行某个任务的构建工作。查看这个[Build Script Basics](https://docs.gradle.org/3.5/userguide/tutorial_using_tasks.html)可以获取`project与task`两个概念，查看[DSL: Project](https://docs.gradle.org/3.5/dsl/org.gradle.api.Project.html)可以深入了解Project类的组成。
 
 
+3. 插件部分
 
+构建一个项目，可以是Java项目产出jar包，也可以是Web项目产出War包，或者Android项目拥有不同的声明周期，需要采用不同的插件。所以了解这个插件来决定是否满足做一些AOP或者条件判断的任务。如：[Java插件相关](https://docs.gradle.org/3.5/userguide/tutorial_java_projects.html)
 
 
 ## 参考资料
 
 1. [Gradle构建工具官网](https://gradle.org/)
 2. [Apache Groovy语言官网](http://www.groovy-lang.org/index.html)
+3. [动态语言Groovy与静态语言Java](https://docs.gradle.org/3.5/userguide/userguide.html)
 
