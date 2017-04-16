@@ -42,7 +42,7 @@ Ant缺点之一是缺乏对依赖jar包的维护和管理，项目对依赖jar�
 - `文件build.gradle`是要执行的脚本；
 - `目录gradle`通常用来盛放gradlew（Gradle Wrapper）的内容，执行`文件gradlew|gradlew.bat`即可完成Gradle的版本下载、方便管理；
 - `目录.gradle`盛放一些中间产出taskArtifacts
-- `文件settings.properties`放置子项目subprojects的一些配置信息
+- `文件settings.properties`放置子项目subprojects的一些项目组成信息
 
 在命令行执行`gradle -q taskName`就是开始进行某个任务的构建工作。查看这个[Build Script Basics](https://docs.gradle.org/3.5/userguide/tutorial_using_tasks.html)可以获取`project与task`两个概念，查看[DSL: Project](https://docs.gradle.org/3.5/dsl/org.gradle.api.Project.html)可以深入了解Project类的组成。
 
