@@ -11,13 +11,13 @@
 
 其实这几个步骤都已经有了现成的参考实现。
 
-1. React提交[JSX规范](https://facebook.github.io/jsx/)，并解析了为什么没有使用Template Literal或者E4X规范；
-2. 针对Mozilla AST的[JSX扩展语法](https://github.com/facebook/jsx/blob/master/AST.md)做了详细介绍；
-3. [babylon](https://github.com/babel/babylon)是babel的核心解析器，基于**acron**和**acron-jsx**；
-4. 如果你还需要扩展JSX语法，那么你可以参考下[acron-jsx](https://github.com/RReverser/acorn-jsx)，它负责对JSX语法解析为JSX AST；
+1. React提交[JSX规范](https://facebook.github.io/jsx/)，并解释了为什么没有使用Template Literal或者E4X规范；
+2. 扩展Mozilla AST的[JSX语法](https://github.com/facebook/jsx/blob/master/AST.md)中各节点的描述；
+3. [babylon](https://github.com/babel/babylon)是babel的核心解析器，基于**acron**和**acron-jsx**；所以babel的JSX功能是基于**acron-jsx**；
+4. 如果你还需要扩展JSX语法，那么有必要了解[acron-jsx](https://github.com/RReverser/acorn-jsx)，它负责将JSX语法解析为JSX AST；
 
 
-## [React JSX babel转换参考: React JSX transform](https://babeljs.io/docs/plugins/transform-react-jsx/)
+## [React JSX transform](https://babeljs.io/docs/plugins/transform-react-jsx/)作为JSX转换参考
 
 代码转换前：
 ```javascript
@@ -42,10 +42,12 @@ var profile = dom( "div", null,
 );
 ```
 
-在这个babel插件的实现层面，引入解析JSX后通过访问者模式构建生成转换过程；参考文件只有两个：[plugin index.js](https://github.com/babel/babel/blob/master/packages/babel-plugin-transform-react-jsx/src/index.js)与[helper/index.js](https://github.com/babel/babel/blob/master/packages/babel-helper-builder-react-jsx/src/index.js)
+在这个babel插件的实现层面，引入解析JSX后通过访问者模式构建生成转换过程；
+
+参考文件只有两个：[plugin index.js](https://github.com/babel/babel/blob/master/packages/babel-plugin-transform-react-jsx/src/index.js)与[helper/index.js](https://github.com/babel/babel/blob/master/packages/babel-helper-builder-react-jsx/src/index.js)
 
 
-## [开发Babel插件的过程](https://github.com/thejameskyle/babel-handbook/blob/master/translations/zh-Hans/plugin-handbook.md)
+## [如何开发Babel插件](https://github.com/thejameskyle/babel-handbook/blob/master/translations/zh-Hans/plugin-handbook.md)来完成转换
 
 如果需要了解代码转换为AST树的样子，可参考在线地址[AST Explorer](https://astexplorer.net/#/KJ8AjD6maa)
 
