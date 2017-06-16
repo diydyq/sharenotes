@@ -8,6 +8,7 @@
 - [[笔记]关于Vue2源码与整体设计的学习](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5D%E5%85%B3%E4%BA%8EVue2%E6%BA%90%E7%A0%81%E4%B8%8E%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%AD%A6%E4%B9%A0.md)
 - [[笔记]前端工程师眼里的Gradle](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5D%E5%89%8D%E7%AB%AF%E5%B7%A5%E7%A8%8B%E5%B8%88%E7%9C%BC%E9%87%8C%E7%9A%84Gradle.md)
 - [[笔记]Chrome的Dev-tool与JS DEBUG](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5DChrome%E7%9A%84Dev-tool%E4%B8%8EJS%20DEBUG.md)
+- [[笔记]关于JSX语法](https://github.com/diydyq/sharenotes/blob/master/%5B%E7%AC%94%E8%AE%B0%5D%E5%85%B3%E4%BA%8EJSX%E8%AF%AD%E6%B3%95.md)
 
 
 ## 翻译
